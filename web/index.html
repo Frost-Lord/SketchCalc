@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas Drawing</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <canvas id="drawingCanvas"></canvas>
+    <div class="buttons">
+        <button onclick="parseDrawing()">Parse</button>
+        <button onclick="deleteDrawing()">Delete</button>
+        <button onclick="clearCanvas()">Clear</button>
+        <button onclick="mergeBoxes()">Merge</button>
+        <button onclick="unmergeBoxes()">Unmerge</button>
+    </div>
+    <div class="divider"></div>
+    <div class="buttons">
+        <button onclick="parseAndEvaluate()">Parsing + Evaluation</button>
+        <button onclick="imageProcessing()">Image</button>
+    </div>
+    <div class="outputs">
+        <label for="parseOutput">Parse Output:</label>
+        <textarea id="parseOutput" rows="4"></textarea>
+        <label for="evaluationOutput">Evaluation Output:</label>
+        <textarea id="evaluationOutput" rows="4"></textarea>
+        <label for="elapsedTime">Elapsed Time:</label>
+        <textarea id="elapsedTime" rows="1"></textarea>
+    </div>
+    <script src="index.js"></script>
+</body>
+</html>
