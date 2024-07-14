@@ -30,6 +30,7 @@ def main():
     model.summary()
     train_model(model, train_ds, val_ds)
     model.save("model.keras")
+    print("Model saved.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train a model with or without GPU.')
