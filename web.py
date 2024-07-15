@@ -1,3 +1,6 @@
+import os
+import random
+import string
 import cv2
 import numpy as np
 from tensorflow.keras.models import load_model
@@ -22,7 +25,7 @@ except RuntimeError as e:
     print(e)
     raise
 
-class_names = ['eight', 'five', 'four', 'nine', 'one', 'seven', 'six', 'three', 'two', 'zero']
+class_names = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 img_height, img_width = 110, 110
 
 def load_image(image_path, target_size=(110, 110)):
@@ -63,5 +66,34 @@ def predict():
     else:
         return jsonify({"error": "Invalid file type"}), 400
 
+def randomkey(length=6):
+    return ''.join(random.choice(string.ascii_letters + string.digits) for i in range(length))
+
+@app.route('/save', methods=['POST'])
+def save():
+    if 'file' not in request.files or 'label' not in request.form:
+        return jsonify({"error": "No file or label part"}), 400
+
+    file = request.files['file']
+    label = request.form['label']
+
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+
+    if file and file.filename.lower().endswith(('.jpg', '.jpeg', '.png')):
+        try:
+            save_dir = os.path.join('dataset', label)
+            os.makedirs(save_dir, exist_ok=True)
+
+            filename = f"{randomkey(6)}.png"
+            file_path = os.path.join(save_dir, filename)
+
+            file.save(file_path)
+            return jsonify({"message": f"File saved as {file_path}"}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    else:
+        return jsonify({"error": "Invalid file type"}), 400
+
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=False)

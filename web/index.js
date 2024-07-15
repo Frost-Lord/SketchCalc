@@ -26,7 +26,6 @@ function stopDrawing() {
     paths.push(currentPath);
     const newBox = calculateBoundingBox(currentPath);
     mergeBoundingBoxes(newBox);
-    drawAllBoundingBoxes();
 }
 
 function draw(event) {
@@ -37,7 +36,7 @@ function draw(event) {
 
     context.lineWidth = 5;
     context.lineCap = 'round';
-    context.strokeStyle = 'white';
+    context.strokeStyle = 'black';
 
     context.lineTo(x, y);
     context.stroke();
@@ -62,7 +61,7 @@ function calculateBoundingBox(path) {
         if (point.y > maxY) maxY = point.y;
     }
 
-    return { minX, minY, maxX, maxY };
+    return { minX, minY, maxX, maxY, predicted_label: '' };
 }
 
 function mergeBoundingBoxes(newBox) {
@@ -119,6 +118,11 @@ function drawAllBoundingBoxes() {
 
     for (const box of boxes) {
         context.strokeRect(box.minX, box.minY, box.maxX - box.minX, box.maxY - box.minY);
+        if (box.predicted_label) {
+            context.fillStyle = 'black';
+            context.font = '16px Arial';
+            context.fillText(box.predicted_label, box.minX, box.minY - 5);
+        }
     }
 }
 
@@ -129,15 +133,76 @@ function redrawAllPaths() {
         for (const point of path) {
             context.lineTo(point.x, point.y);
         }
-        context.strokeStyle = 'white';
+        context.strokeStyle = 'black';
         context.lineWidth = 5;
         context.stroke();
         context.beginPath();
     }
 }
 
+function sendBoxToServer(box, callback) {
+    const boxCanvas = document.createElement('canvas');
+    const boxContext = boxCanvas.getContext('2d');
+    const width = 110;
+    const height = 100;
+    
+    const boxWidth = box.maxX - box.minX;
+    const boxHeight = box.maxY - box.minY;
+
+    boxCanvas.width = width;
+    boxCanvas.height = height;
+
+    boxContext.fillStyle = getRandomColor();
+    boxContext.fillRect(0, 0, width, height);
+
+    const scaleX = width / boxWidth;
+    const scaleY = height / boxHeight;
+    const scale = Math.min(scaleX, scaleY);
+
+    const scaledWidth = boxWidth * scale;
+    const scaledHeight = boxHeight * scale;
+
+    const offsetX = (width - scaledWidth) / 2;
+    const offsetY = (height - scaledHeight) / 2;
+
+    boxContext.drawImage(canvas, box.minX, box.minY, boxWidth, boxHeight, offsetX, offsetY, scaledWidth, scaledHeight);
+
+    boxCanvas.toBlob(function(blob) {
+        const formData = new FormData();
+        formData.append('file', blob, 'box.png');
+
+        fetch('http://127.0.0.1:5000/predict', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            callback(null, data.predicted_label);
+        })
+        .catch((error) => {
+            callback(error, null);
+        });
+    }, 'image/png');
+}
+
 function parseDrawing() {
-    document.getElementById('parseOutput').value = 'Parsed drawing data...';
+    const outputbox = document.getElementById('parseOutput');
+    outputbox.value = 'Parsed drawing data...';
+    let output = '';
+    boxes.forEach(box => {
+        sendBoxToServer(box, (error, predicted_label) => {
+            if (error) {
+                console.error('Error:', error);
+                return;
+            }
+            box.predicted_label = predicted_label;
+            const evaluationOutput = document.getElementById('evaluationOutput');
+            evaluationOutput.value += `Box: (${box.minX}, ${box.minY}, ${box.maxX}, ${box.maxY}) - Predicted Label: ${predicted_label}\n`;
+            output += predicted_label;
+            drawAllBoundingBoxes();
+            outputbox.value = output;
+        });
+    });
 }
 
 function deleteDrawing() {}
@@ -165,45 +230,62 @@ function measureElapsedTime(callback) {
     document.getElementById('elapsedTime').value = (endTime - startTime).toFixed(2) + ' ms';
 }
 
-function sendBoxToServer(box, callback) {
-    const boxCanvas = document.createElement('canvas');
-    const boxContext = boxCanvas.getContext('2d');
-    const width = box.maxX - box.minX;
-    const height = box.maxY - box.minY;
-
-    boxCanvas.width = width;
-    boxCanvas.height = height;
-
-    boxContext.drawImage(canvas, box.minX, box.minY, width, height, 0, 0, width, height);
-
-    boxCanvas.toBlob(function(blob) {
-        const formData = new FormData();
-        formData.append('file', blob, 'box.png');
-
-        fetch('http://127.0.0.1:5000/predict', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            callback(null, data.predicted_label);
-        })
-        .catch((error) => {
-            callback(error, null);
-        });
-    }, 'image/png');
+function getRandomColor() {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
 }
 
-function parseDrawing() {
-    document.getElementById('parseOutput').value = 'Parsed drawing data...';
+function SaveToDataset() {
     boxes.forEach(box => {
-        sendBoxToServer(box, (error, predicted_label) => {
-            if (error) {
-                console.error('Error:', error);
-                return;
-            }
-            const evaluationOutput = document.getElementById('evaluationOutput');
-            evaluationOutput.value += `Box: (${box.minX}, ${box.minY}, ${box.maxX}, ${box.maxY}) - Predicted Label: ${predicted_label}\n`;
-        });
+        const boxCanvas = document.createElement('canvas');
+        const boxContext = boxCanvas.getContext('2d');
+        const width = 110;
+        const height = 100;
+        
+        const boxWidth = box.maxX - box.minX;
+        const boxHeight = box.maxY - box.minY;
+
+        boxCanvas.width = width;
+        boxCanvas.height = height;
+
+        boxContext.fillStyle = getRandomColor();
+        boxContext.fillRect(0, 0, width, height);
+
+        const scaleX = width / boxWidth;
+        const scaleY = height / boxHeight;
+        const scale = Math.min(scaleX, scaleY);
+
+        const scaledWidth = boxWidth * scale;
+        const scaledHeight = boxHeight * scale;
+
+        const offsetX = (width - scaledWidth) / 2;
+        const offsetY = (height - scaledHeight) / 2;
+
+        boxContext.drawImage(canvas, box.minX, box.minY, boxWidth, boxHeight, offsetX, offsetY, scaledWidth, scaledHeight);
+
+        const label = prompt('Enter a label for this box:');
+
+        boxCanvas.toBlob(function(blob) {
+            const formData = new FormData();
+            formData.append('file', blob, 'box.png');
+            formData.append('label', label);
+
+            fetch('http://127.0.0.1:5000/save', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                callback(null, data.predicted_label);
+            })
+            .catch((error) => {
+                callback(error, null);
+            });
+        }, 'image/png');
     });
+    drawAllBoundingBoxes();
 }

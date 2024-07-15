@@ -3,5 +3,5 @@ img_width = 110
 
 train_data_dir = "dataset"
 learning_rate = 0.03
-epochs = 10
+epochs = 5
 batch_size = 32
