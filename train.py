@@ -25,8 +25,8 @@ def set_gpu_config(use_gpu):
             print(e)
 
 def main():
-    train_ds, val_ds = load_datasets(config.img_height, config.img_width)
-    model = build_model(config.img_height, config.img_width, 10)
+    train_ds, val_ds, class_names = load_datasets(config.img_height, config.img_width)
+    model = build_model(config.img_height, config.img_width, class_names)
     model.summary()
     train_model(model, train_ds, val_ds)
     model.save("model.keras")

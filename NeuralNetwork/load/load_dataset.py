@@ -38,4 +38,4 @@ def load_datasets(img_height, img_width, batch_size=config.batch_size):
     train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
     val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
-    return train_ds, val_ds
+    return train_ds, val_ds, len(class_names)

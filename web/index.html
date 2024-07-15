@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Canvas Drawing</title>
     <link rel="stylesheet" href="index.css">
+    <!-- KaTeX CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css">
+    <!-- KaTeX JS -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js"></script>
 </head>
 <body>
     <canvas id="drawingCanvas"></canvas>
@@ -19,6 +23,8 @@
     <div class="divider"></div>
     <div class="buttons">
         <button onclick="parseAndEvaluate()">Parsing + Evaluation</button>
+        <button onclick="MathTex()">MathTex</button>
+        <button onclick="MathML()">MathML</button>
         <button onclick="imageProcessing()">Image</button>
     </div>
     <div class="outputs">

@@ -187,6 +187,7 @@ function sendBoxToServer(box, callback) {
 
 function parseDrawing() {
     const outputbox = document.getElementById('parseOutput');
+    const evaluationOutput = document.getElementById('evaluationOutput');
     outputbox.value = 'Parsed drawing data...';
     let output = '';
     boxes.forEach(box => {
@@ -196,11 +197,17 @@ function parseDrawing() {
                 return;
             }
             box.predicted_label = predicted_label;
-            const evaluationOutput = document.getElementById('evaluationOutput');
             evaluationOutput.value += `Box: (${box.minX}, ${box.minY}, ${box.maxX}, ${box.maxY}) - Predicted Label: ${predicted_label}\n`;
             output += predicted_label;
-            drawAllBoundingBoxes();
             outputbox.value = output;
+            drawAllBoundingBoxes();
+            try {
+                const calculatedOutput = eval(output);
+                evaluationOutput.value = calculatedOutput;
+            } catch (e) {
+                console.error('Error in calculation:', e);
+                evaluationOutput.value = 'Error in calculation';
+            }
         });
     });
 }
