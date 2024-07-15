@@ -3,14 +3,15 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
+    width: 100%;
     height: 100vh;
     font-family: 'Roboto', sans-serif;
     background-color: #131212;
     color: #dee1e9;
+    overflow-x: hidden; /* Prevent horizontal scrollbar */
 }
 
 h1 {
-    margin: 0;
     font-size: 1.5rem;
 }
 
@@ -26,9 +27,9 @@ main {
 canvas {
     width: 100%;
     height: 60vh;
-    border: 1px solid #19191a;
     cursor: crosshair;
     background-color: #ffffff;
+    display: block; /* Prevent inline spacing issues */
 }
 
 .buttons {

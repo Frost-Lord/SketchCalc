@@ -4,10 +4,16 @@ const context = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight * 0.6;
 
+const scale = window.devicePixelRatio;
+canvas.width = Math.floor(canvas.width * scale);
+canvas.height = Math.floor(canvas.height * scale);
+context.scale(scale, scale);
+
 let drawing = false;
 let currentPath = [];
 let paths = [];
 let boxes = [];
+let lastBoxTime = 0;
 
 canvas.addEventListener('mousedown', startDrawing);
 canvas.addEventListener('mouseup', stopDrawing);
@@ -17,7 +23,7 @@ function startDrawing(event) {
     drawing = true;
     currentPath = [];
     context.beginPath();
-    context.moveTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
+    context.moveTo(event.offsetX * scale, event.offsetY * scale);
 }
 
 function stopDrawing() {
@@ -26,13 +32,14 @@ function stopDrawing() {
     paths.push(currentPath);
     const newBox = calculateBoundingBox(currentPath);
     mergeBoundingBoxes(newBox);
+    lastBoxTime = performance.now();
 }
 
 function draw(event) {
     if (!drawing) return;
 
-    const x = event.clientX - canvas.offsetLeft;
-    const y = event.clientY - canvas.offsetTop;
+    const x = event.offsetX * scale;
+    const y = event.offsetY * scale;
 
     context.lineWidth = 5;
     context.lineCap = 'round';
@@ -68,46 +75,41 @@ function mergeBoundingBoxes(newBox) {
     if (!newBox) return;
 
     let merged = false;
-    for (const box of boxes) {
-        if (isOverlapping(box, newBox) || isMostlyWithin(box, newBox)) {
-            box.minX = Math.min(box.minX, newBox.minX);
-            box.minY = Math.min(box.minY, newBox.minY);
-            box.maxX = Math.max(box.maxX, newBox.maxX);
-            box.maxY = Math.max(box.maxY, newBox.maxY);
-            merged = true;
+    let toMerge = [newBox];
+
+    while (toMerge.length > 0) {
+        const currentBox = toMerge.pop();
+        for (let i = 0; i < boxes.length; i++) {
+            if (isClose(boxes[i], currentBox)) {
+                boxes[i].minX = Math.min(boxes[i].minX, currentBox.minX);
+                boxes[i].minY = Math.min(boxes[i].minY, currentBox.minY);
+                boxes[i].maxX = Math.max(boxes[i].maxX, currentBox.maxX);
+                boxes[i].maxY = Math.max(boxes[i].maxY, currentBox.maxY);
+                toMerge.push(boxes[i]);
+                boxes.splice(i, 1);
+                merged = true;
+                break;
+            }
         }
+
+        if (!merged) {
+            boxes.push(currentBox);
+        }
+        merged = false;
     }
 
-    if (!merged) {
-        boxes.push(newBox);
-    }
+    drawAllBoundingBoxes();
 }
 
-function isOverlapping(box1, box2) {
-    return !(box1.maxX < box2.minX ||
-             box1.minX > box2.maxX ||
-             box1.maxY < box2.minY ||
-             box1.minY > box2.maxY);
+function isClose(box1, box2) {
+    const distanceThreshold = 90;
+    const centerX1 = (box1.minX + box1.maxX) / 2;
+    const centerX2 = (box2.minX + box2.maxX) / 2;
+
+    const distance = Math.abs(centerX1 - centerX2);
+    return distance < distanceThreshold;
 }
 
-function isMostlyWithin(largeBox, smallBox) {
-    const overlapMinX = Math.max(largeBox.minX, smallBox.minX);
-    const overlapMinY = Math.max(largeBox.minY, smallBox.minY);
-    const overlapMaxX = Math.min(largeBox.maxX, smallBox.maxX);
-    const overlapMaxY = Math.min(largeBox.maxY, smallBox.maxY);
-
-    const overlapWidth = overlapMaxX - overlapMinX;
-    const overlapHeight = overlapMaxY - overlapMinY;
-
-    if (overlapWidth <= 0 || overlapHeight <= 0) {
-        return false;
-    }
-
-    const overlapArea = overlapWidth * overlapHeight;
-    const smallBoxArea = (smallBox.maxX - smallBox.minX) * (smallBox.maxY - smallBox.minY);
-
-    return (overlapArea / smallBoxArea) > 0.5;
-}
 
 function drawAllBoundingBoxes() {
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -139,6 +141,7 @@ function redrawAllPaths() {
         context.beginPath();
     }
 }
+
 
 function sendBoxToServer(box, callback) {
     const boxCanvas = document.createElement('canvas');
@@ -188,7 +191,6 @@ function sendBoxToServer(box, callback) {
 function parseDrawing() {
     const outputbox = document.getElementById('parseOutput');
     const evaluationOutput = document.getElementById('evaluationOutput');
-    const katexOutput = document.getElementById('katexOutput');
     outputbox.value = 'Parsed drawing data...';
     let output = '';
 
