@@ -185,30 +185,76 @@ function sendBoxToServer(box, callback) {
     }, 'image/png');
 }
 
+function numericalIntegrate(f, a, b, n = 1000) {
+    const h = (b - a) / n;
+    let sum = 0.5 * (f(a) + f(b));
+    for (let i = 1; i < n; i++) {
+        sum += f(a + i * h);
+    }
+    return sum * h;
+}
+
 function parseDrawing() {
     const outputbox = document.getElementById('parseOutput');
     const evaluationOutput = document.getElementById('evaluationOutput');
+    const katexOutput = document.getElementById('katexOutput');
     outputbox.value = 'Parsed drawing data...';
     let output = '';
-    boxes.forEach(box => {
-        sendBoxToServer(box, (error, predicted_label) => {
-            if (error) {
-                console.error('Error:', error);
-                return;
-            }
-            box.predicted_label = predicted_label;
-            evaluationOutput.value += `Box: (${box.minX}, ${box.minY}, ${box.maxX}, ${box.maxY}) - Predicted Label: ${predicted_label}\n`;
-            output += predicted_label;
-            outputbox.value = output;
-            drawAllBoundingBoxes();
-            try {
-                const calculatedOutput = eval(output);
-                evaluationOutput.value = calculatedOutput;
-            } catch (e) {
-                console.error('Error in calculation:', e);
-                evaluationOutput.value = 'Error in calculation';
-            }
+
+    boxes.sort((a, b) => a.minX - b.minX);
+    let orderedPredictedLabels = [];
+
+    let promises = boxes.map(box => {
+        return new Promise((resolve, reject) => {
+            sendBoxToServer(box, (error, predicted_label) => {
+                if (error) {
+                    console.error('Error:', error);
+                    reject(error);
+                    return;
+                }
+                box.predicted_label = predicted_label;
+                orderedPredictedLabels.push({
+                    minX: box.minX,
+                    label: predicted_label
+                });
+                evaluationOutput.value += `Box: (${box.minX}, ${box.minY}, ${box.maxX}, ${box.maxY}) - Predicted Label: ${predicted_label}\n`;
+                resolve();
+            });
         });
+    });
+
+    Promise.all(promises).then(() => {
+        orderedPredictedLabels.sort((a, b) => a.minX - b.minX);
+        output = orderedPredictedLabels.map(item => item.label).join('');
+
+        outputbox.value = output;
+        drawAllBoundingBoxes();
+
+        try {
+            if (output.includes('∫')) {
+                const integralRegex = /(\d+),\s*(\d+)\s*∫([\s\S]*?)dx/;
+                const match = output.match(integralRegex);
+                if (match) {
+                    const lowerLimit = parseFloat(match[1].trim());
+                    const upperLimit = parseFloat(match[2].trim());
+                    const integrand = match[3].trim();
+                    
+                    const func = math.compile(integrand);
+                    const integralResult = numericalIntegrate(x => func.evaluate({ x }), lowerLimit, upperLimit);
+                    evaluationOutput.value = integralResult;
+                } else {
+                    throw new Error('Integral format is incorrect.');
+                }
+            } else {
+                const calculatedOutput = math.evaluate(output);
+                evaluationOutput.value = calculatedOutput;
+            }
+        } catch (e) {
+            console.error('Error in calculation:', e);
+            evaluationOutput.value = 'Error in calculation';
+        }
+    }).catch(error => {
+        console.error('Error processing boxes:', error);
     });
 }
 
