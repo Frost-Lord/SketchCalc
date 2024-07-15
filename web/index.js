@@ -185,15 +185,6 @@ function sendBoxToServer(box, callback) {
     }, 'image/png');
 }
 
-function numericalIntegrate(f, a, b, n = 1000) {
-    const h = (b - a) / n;
-    let sum = 0.5 * (f(a) + f(b));
-    for (let i = 1; i < n; i++) {
-        sum += f(a + i * h);
-    }
-    return sum * h;
-}
-
 function parseDrawing() {
     const outputbox = document.getElementById('parseOutput');
     const evaluationOutput = document.getElementById('evaluationOutput');
@@ -258,7 +249,6 @@ function parseDrawing() {
     });
 }
 
-function deleteDrawing() {}
 
 function clearCanvas() {
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -266,30 +256,15 @@ function clearCanvas() {
     boxes = [];
 }
 
-function mergeBoxes() {}
-
-function unmergeBoxes() {}
-
 function parseAndEvaluate() {
     document.getElementById('evaluationOutput').value = 'Evaluation result...';
 }
-
-function imageProcessing() {}
 
 function measureElapsedTime(callback) {
     const startTime = performance.now();
     callback();
     const endTime = performance.now();
     document.getElementById('elapsedTime').value = (endTime - startTime).toFixed(2) + ' ms';
-}
-
-function getRandomColor() {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
 }
 
 function SaveToDataset() {
