@@ -104,12 +104,19 @@ function mergeBoundingBoxes(newBox) {
 }
 
 function isClose(box1, box2) {
-    const distanceThreshold = 90;
+    const xdistanceThreshold = 90;
+    const ydistanceThreshold = 50;
+
     const centerX1 = (box1.minX + box1.maxX) / 2;
     const centerX2 = (box2.minX + box2.maxX) / 2;
 
+    const centerY1 = (box1.minY + box1.maxY) / 2;
+    const centerY2 = (box2.minY + box2.maxY) / 2;
+
+    if (Math.abs(centerY1 - centerY2) > ydistanceThreshold) return false;
+    
     const distance = Math.abs(centerX1 - centerX2);
-    return distance < distanceThreshold;
+    return distance < xdistanceThreshold;
 }
 
 

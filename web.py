@@ -25,7 +25,7 @@ except RuntimeError as e:
     print(e)
     raise
 
-class_names = ['(', ')', '+', ',', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '∞', 'π', 'cos', 'd', '∫', 'sin', 'x']
+class_names = ['(', ')', '+', ',', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '=', '∞', 'π', '[', ']', 'cos', 'd', '÷', 'e', '∫', 'lim', 'log', 'sin', 'sqrt', 'Σ', 'tan', '*', 'x']
 img_height, img_width = 110, 110
 
 def load_image(image_path, target_size=(110, 110)):
