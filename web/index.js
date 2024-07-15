@@ -1,8 +1,10 @@
 const canvas = document.getElementById('drawingCanvas');
+const timeElap = document.getElementById('elapsedTime');
 const context = canvas.getContext('2d');
+var startTime, endTime;
 
 canvas.width = window.innerWidth;
-canvas.height = window.innerHeight * 0.6;
+canvas.height = window.innerHeight * 0.43;
 
 const scale = window.devicePixelRatio;
 canvas.width = Math.floor(canvas.width * scale);
@@ -144,6 +146,7 @@ function redrawAllPaths() {
 
 
 function sendBoxToServer(box, callback) {
+    startTime = new Date();
     const boxCanvas = document.createElement('canvas');
     const boxContext = boxCanvas.getContext('2d');
     const width = 110;
@@ -249,6 +252,9 @@ function parseDrawing() {
     }).catch(error => {
         console.error('Error processing boxes:', error);
     });
+    endTime = new Date();
+    var timeDiff = endTime - startTime;
+    timeElap.value = timeDiff + " ms";
 }
 
 

@@ -1,6 +1,7 @@
 function UndoDrawing() {
     if (paths.length > 0) {
         paths.pop();
+        boxes = [];
         recalculateBoundingBoxes();
         drawAllBoundingBoxes();
     }
