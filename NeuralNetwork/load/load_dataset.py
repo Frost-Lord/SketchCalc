@@ -25,6 +25,16 @@ def load_datasets(img_height, img_width, batch_size=config.batch_size):
     class_names = train_ds.class_names
     print(class_names)
 
+    with open('./config.py', 'r') as file:
+        lines = file.readlines()
+
+    with open('./config.py', 'w') as file:
+        for line in lines:
+            if line.startswith('class_names'):
+                file.write(f'class_names = {class_names}\n')
+            else:
+                file.write(line)
+
     normalization_layer = tf.keras.layers.Rescaling(1. / 255)
 
     normalized_ds = train_ds.map(lambda x, y: (normalization_layer(x), y))

@@ -8,6 +8,7 @@ import tensorflow as tf
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import io
+import config
 
 app = Flask(__name__)
 CORS(app)
@@ -25,7 +26,21 @@ except RuntimeError as e:
     print(e)
     raise
 
-class_names = ['(', ')', '+', ',', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '=', '∞', 'π', '[', ']', 'cos', 'd', '÷', 'e', '∫', 'lim', 'log', 'sin', 'sqrt', 'Σ', 'tan', '*', 'x']
+symbol_map = {
+    "Infinity": "∞",
+    "PI": "π",
+    "divide": "÷",
+    "int": "∫",
+    "sqrt": "√",
+    "times": "*",
+    "sum": "Σ",
+    "gt": ">",
+    "lt": "<",
+    "gte": "≥",
+    "lte": "≤",
+}
+
+class_names = [symbol_map.get(name, name) for name in config.class_names]
 img_height, img_width = 110, 110
 
 def load_image(image_path, target_size=(110, 110)):

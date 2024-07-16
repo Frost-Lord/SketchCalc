@@ -249,6 +249,17 @@ function parseDrawing() {
                     throw new Error('Integral format is incorrect.');
                 }
             } else {
+                if (output.includes('÷')) {
+                    output = output.replace(/÷/g, '/');
+                } else if (output.includes('π')) {
+                    output = output.replace(/π/g, 'pi');
+                } else if (output.includes('∞')) {
+                    output = output.replace(/∞/g, 'Infinity');
+                } else if (output.includes('√')) {
+                    output = output.replace(/√/g, 'sqrt');
+                } else if (output.includes('Σ')) {
+                    output = output.replace(/Σ/g, 'sum');
+                }
                 const calculatedOutput = math.evaluate(output);
                 evaluationOutput.value = calculatedOutput;
             }
