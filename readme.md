@@ -40,15 +40,21 @@ SketchCalc is an interactive web application that allows users to draw mathemati
     git clone https://github.com/Frost-Lord/SketchCalc.git
     cd SketchCalc
     ```
-2. Install dependencies:
+2. Download the model and dataset
+    ```bash
+    https://drive.google.com/drive/folders/1u9L_ByfnE8vfx2AMju7VChWGTsQkbbgm?usp=sharing
+    Extract "model.keras" to -> ./
+    Extract "dataset" to -> ./
+    ```
+3. Install dependencies:
     ```bash
     pip install -r requirements.txt
     ```
-3. Run the server:
+4. Run the server:
     ```bash
     python web.py
     ```
-4. Open `index.html` in your browser to start drawing and calculating.
+5. Open `index.html` in your browser to start drawing and calculating.
 
 
 # Dev Notes:
