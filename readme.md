@@ -65,7 +65,10 @@ SketchCalc is an interactive web application that allows users to draw mathemati
 python -m venv venv
 
 # Activate the virtual environment
-.\venv\Scripts\activate
+.\venv\Scripts\activate || source venv/bin/activate
+
+# Install Tensorflow
+python3 -m pip install tensorflow[and-cuda]
 
 # Keras to tflite
 python convert_to_tflite.py -i model.keras -o model.tflite
